@@ -1,0 +1,2457 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no"
+    />
+    <meta name="theme-color" content="#050a1c" />
+    <title>Кто хочет стать знатоком? — Исламская викторина</title>
+    <style>
+      /* ============================================================
+   БАЗА
+   ============================================================ */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      :root {
+        --gold: #f7c948;
+        --gold-2: #ffe08a;
+        --gold-d: #c9922b;
+        --ink: #e8efff;
+        --muted: #8ea3cc;
+        --green: #22c55e;
+        --red: #ef4444;
+      }
+
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        font-family:
+          'Segoe UI',
+          system-ui,
+          -apple-system,
+          'Roboto',
+          'Helvetica Neue',
+          Arial,
+          sans-serif;
+        background: #03060f;
+        color: var(--ink);
+        overflow: hidden;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+      }
+
+      #bg {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        background:
+          radial-gradient(1100px 700px at 50% -15%, rgba(38, 80, 180, 0.55), transparent 62%),
+          radial-gradient(800px 600px at 105% 108%, rgba(60, 40, 160, 0.45), transparent 60%),
+          radial-gradient(700px 500px at -10% 100%, rgba(20, 90, 150, 0.35), transparent 60%),
+          linear-gradient(165deg, #050a1c 0%, #08122c 45%, #03060f 100%);
+      }
+      #bg::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+        background-size: 34px 34px;
+        -webkit-mask-image: radial-gradient(circle at 50% 25%, #000 0%, transparent 72%);
+        mask-image: radial-gradient(circle at 50% 25%, #000 0%, transparent 72%);
+        opacity: 0.45;
+      }
+
+      /* ============================================================
+   КАРКАС ПРИЛОЖЕНИЯ — с учётом высоты мобильных браузеров
+   ============================================================ */
+      .app {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        max-width: 860px;
+        margin: 0 auto;
+        overflow: hidden;
+
+        /* 1) Фолбэк через --vh (задаётся из JS) для старых iOS */
+        height: calc(var(--vh, 1vh) * 100);
+        /* 2) Современный dvh — перекрывает фолбэк, если поддерживается */
+        height: 100dvh;
+        /* 3) Минимальная высота от клип-области браузера */
+        max-height: 100dvh;
+      }
+
+      /* ============================================================
+   ЭКРАНЫ
+   ============================================================ */
+      .screen {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        padding: calc(16px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right))
+          calc(14px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left));
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(12px);
+        transition:
+          opacity 0.38s ease,
+          transform 0.38s ease;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+      }
+      .screen.active {
+        opacity: 1;
+        pointer-events: auto;
+        transform: none;
+      }
+
+      /* ============================================================
+   СТАРТОВЫЙ ЭКРАН
+   ============================================================ */
+      #screen-start {
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        gap: 26px;
+        overflow: hidden;
+      }
+      .logo-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .emblem {
+        width: 82px;
+        height: 82px;
+        position: relative;
+        display: grid;
+        place-items: center;
+        animation: floaty 4.5s ease-in-out infinite;
+      }
+      .emblem::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: conic-gradient(
+          from 0deg,
+          rgba(247, 201, 72, 0),
+          rgba(247, 201, 72, 0.55),
+          rgba(247, 201, 72, 0),
+          rgba(247, 201, 72, 0.55),
+          rgba(247, 201, 72, 0)
+        );
+        animation: spin 9s linear infinite;
+        filter: blur(1px);
+      }
+      .emblem::after {
+        content: '';
+        position: absolute;
+        inset: 5px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 50% 30%, #152a5e, #080f26);
+        border: 1px solid rgba(247, 201, 72, 0.35);
+      }
+      .emblem span {
+        position: relative;
+        z-index: 2;
+        font-size: 2rem;
+        filter: drop-shadow(0 0 12px rgba(247, 201, 72, 0.5));
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      @keyframes floaty {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-7px);
+        }
+      }
+
+      .title {
+        font-size: clamp(1.55rem, 3.2vh + 3.6vw, 2.7rem);
+        font-weight: 900;
+        line-height: 1.12;
+        letter-spacing: 0.01em;
+        text-transform: uppercase;
+        background: linear-gradient(180deg, #fff8dd 0%, #f7c948 45%, #c9922b 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        filter: drop-shadow(0 5px 22px rgba(247, 201, 72, 0.28));
+      }
+      .subtitle {
+        font-size: clamp(0.74rem, 1.4vh, 0.86rem);
+        color: var(--muted);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+      .divider {
+        width: 150px;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(247, 201, 72, 0.8), transparent);
+      }
+      .desc {
+        font-size: clamp(0.82rem, 1.8vh, 0.9rem);
+        color: #a9bce0;
+        line-height: 1.6;
+        max-width: 340px;
+      }
+
+      .btn-start {
+        position: relative;
+        padding: clamp(14px, 2.2vh, 17px) 48px;
+        font-family: inherit;
+        font-size: clamp(0.9rem, 1.9vh, 1.02rem);
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #1a1206;
+        border: none;
+        border-radius: 999px;
+        cursor: pointer;
+        background: linear-gradient(180deg, #ffe89b, #f0b429 45%, #c9922b);
+        box-shadow:
+          0 12px 34px rgba(240, 180, 41, 0.34),
+          inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        transition:
+          transform 0.15s ease,
+          box-shadow 0.25s ease;
+        animation: breathe 2.6s ease-in-out infinite;
+      }
+      .btn-start:active {
+        transform: scale(0.955);
+        animation: none;
+      }
+      @keyframes breathe {
+        0%,
+        100% {
+          box-shadow:
+            0 12px 34px rgba(240, 180, 41, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        }
+        50% {
+          box-shadow:
+            0 12px 46px rgba(240, 180, 41, 0.62),
+            inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        }
+      }
+
+      .btn-ghost {
+        padding: clamp(11px, 1.8vh, 14px) 34px;
+        font-family: inherit;
+        font-size: clamp(0.8rem, 1.7vh, 0.9rem);
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        cursor: pointer;
+        color: #b9cdf2;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 999px;
+        transition: 0.2s;
+      }
+      .btn-ghost:active {
+        transform: scale(0.96);
+        background: rgba(255, 255, 255, 0.09);
+      }
+
+      .opts {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .chip {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 16px;
+        border-radius: 999px;
+        font-family: inherit;
+        font-size: clamp(0.74rem, 1.6vh, 0.8rem);
+        font-weight: 600;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: var(--muted);
+        cursor: pointer;
+        transition: 0.22s;
+      }
+      .chip.on {
+        background: rgba(247, 201, 72, 0.14);
+        border-color: rgba(247, 201, 72, 0.55);
+        color: var(--gold);
+        box-shadow: 0 0 18px rgba(247, 201, 72, 0.14);
+      }
+      .chip .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #4b5c80;
+        transition: 0.22s;
+      }
+      .chip.on .dot {
+        background: var(--gold);
+        box-shadow: 0 0 8px var(--gold);
+      }
+
+      .footnote {
+        font-size: clamp(0.68rem, 1.4vh, 0.74rem);
+        color: #5f7196;
+        letter-spacing: 0.04em;
+      }
+
+      /* ============================================================
+   ИГРОВОЙ ЭКРАН
+   ============================================================ */
+      #screen-game {
+        gap: 9px;
+        overflow: hidden; /* внутренний скролл делает .game-body */
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        flex: 0 0 auto;
+      }
+      .icon-btn {
+        width: clamp(38px, 5.2vh, 44px);
+        height: clamp(38px, 5.2vh, 44px);
+        flex: 0 0 auto;
+        display: grid;
+        place-items: center;
+        border-radius: 13px;
+        cursor: pointer;
+        background: linear-gradient(180deg, rgba(40, 62, 130, 0.55), rgba(10, 18, 44, 0.75));
+        border: 1px solid rgba(120, 160, 255, 0.24);
+        color: #cfe0ff;
+        font-size: clamp(1rem, 2.1vh, 1.15rem);
+        transition: 0.2s;
+      }
+      .icon-btn:active {
+        transform: scale(0.93);
+        background: rgba(60, 90, 180, 0.5);
+      }
+      .icon-btn.off {
+        opacity: 0.4;
+      }
+
+      .progress {
+        flex: 1;
+        text-align: center;
+        line-height: 1.35;
+        min-width: 0;
+      }
+      .progress .p-main {
+        font-size: clamp(0.72rem, 1.6vh, 0.82rem);
+        color: var(--muted);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      .progress .p-main b {
+        color: #fff;
+        font-weight: 800;
+      }
+      .progress .p-val {
+        font-size: clamp(0.7rem, 1.6vh, 0.78rem);
+        font-weight: 800;
+        color: var(--gold);
+        letter-spacing: 0.05em;
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* ---- таймер ---- */
+      .timer-track {
+        flex: 0 0 auto;
+        height: 3px;
+        border-radius: 99px;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.07);
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      .timer-track.on {
+        opacity: 1;
+      }
+      .timer-fill {
+        height: 100%;
+        width: 100%;
+        transform-origin: left center;
+        background: linear-gradient(90deg, #4ade80, #facc15, #ef4444);
+        border-radius: 99px;
+      }
+
+      /* ---- тело игры (скроллится независимо) ---- */
+      .game-body {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+        display: flex;
+        flex-direction: column;
+      }
+      .game-body-in {
+        margin-block: auto;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 6px 0;
+        will-change: transform;
+        transform-origin: center top;
+      }
+
+      /* ---- карточка вопроса ---- */
+      .qcard {
+        position: relative;
+        overflow: hidden;
+        border-radius: 20px;
+        padding: clamp(14px, 2.4vh, 20px) clamp(14px, 3vw, 18px) clamp(16px, 2.6vh, 22px);
+        background: linear-gradient(180deg, rgba(24, 44, 100, 0.94), rgba(8, 15, 38, 0.96));
+        border: 1px solid rgba(96, 140, 235, 0.28);
+        box-shadow:
+          0 22px 48px rgba(0, 0, 0, 0.52),
+          inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      }
+      .qcard::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, rgba(247, 201, 72, 0.95), transparent);
+      }
+      .qcard::after {
+        content: '';
+        position: absolute;
+        left: 50%;
+        bottom: -70px;
+        transform: translateX(-50%);
+        width: 230px;
+        height: 140px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(80, 130, 255, 0.3), transparent 70%);
+        pointer-events: none;
+      }
+      .qcard.in {
+        animation: cardIn 0.42s cubic-bezier(0.2, 0.9, 0.25, 1) both;
+      }
+      @keyframes cardIn {
+        from {
+          opacity: 0;
+          transform: translateY(14px) scale(0.985);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      .qprize {
+        position: relative;
+        z-index: 2;
+        display: block;
+        width: fit-content;
+        margin: 0 auto 14px;
+        font-size: clamp(0.62rem, 1.4vh, 0.7rem);
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--gold);
+        background: rgba(247, 201, 72, 0.1);
+        border: 1px solid rgba(247, 201, 72, 0.35);
+        padding: 5px 13px;
+        border-radius: 999px;
+        font-variant-numeric: tabular-nums;
+      }
+      .qtext {
+        position: relative;
+        z-index: 2;
+        font-size: clamp(0.92rem, 2.2vh + 1.8vw, 1.22rem);
+        font-weight: 600;
+        line-height: 1.45;
+        text-align: center;
+        text-wrap: pretty;
+      }
+
+      /* ---- ответы ---- */
+      .answers {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+      @media (min-width: 640px) {
+        .answers {
+          grid-template-columns: 1fr 1fr;
+          gap: 11px;
+        }
+        .qtext {
+          font-size: clamp(1rem, 2vh + 1.2vw, 1.15rem);
+        }
+      }
+
+      .answer {
+        position: relative;
+        display: block;
+        width: 100%;
+        padding: 1.6px;
+        border: 0;
+        cursor: pointer;
+        font-family: inherit;
+        text-align: left;
+        color: inherit;
+        background: linear-gradient(180deg, #4a6cc0, #16264f);
+        clip-path: polygon(4% 0, 96% 0, 100% 50%, 96% 100%, 4% 100%, 0 50%);
+        transition:
+          transform 0.12s ease,
+          filter 0.25s ease,
+          opacity 0.3s ease,
+          background 0.25s ease;
+      }
+      .answer:active {
+        transform: scale(0.985);
+      }
+      .answer-in {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-height: clamp(46px, 6.4vh, 58px);
+        padding: clamp(9px, 1.6vh, 12px) clamp(16px, 4vw, 22px);
+        background: linear-gradient(180deg, #0f1d45, #070f26);
+        clip-path: polygon(4% 0, 96% 0, 100% 50%, 96% 100%, 4% 100%, 0 50%);
+        transition: background 0.25s ease;
+      }
+      .letter {
+        flex: 0 0 auto;
+        width: clamp(22px, 3.4vh, 28px);
+        height: clamp(22px, 3.4vh, 28px);
+        display: grid;
+        place-items: center;
+        background: linear-gradient(180deg, #1c3068, #0a1330);
+        border: 1px solid rgba(247, 201, 72, 0.45);
+        border-radius: 6px;
+        transform: rotate(45deg);
+        box-shadow: 0 0 12px rgba(247, 201, 72, 0.1);
+        transition: border-color 0.25s;
+      }
+      .letter i {
+        transform: rotate(-45deg);
+        font-style: normal;
+        font-weight: 900;
+        font-size: clamp(0.68rem, 1.5vh, 0.8rem);
+        color: var(--gold);
+        transition: color 0.25s;
+      }
+      .atext {
+        flex: 1;
+        font-size: clamp(0.82rem, 1.6vh + 1.4vw, 1rem);
+        line-height: 1.35;
+        color: #dbe6ff;
+        text-wrap: pretty;
+      }
+      .pct {
+        flex: 0 0 auto;
+        font-size: clamp(0.72rem, 1.5vh, 0.8rem);
+        font-weight: 900;
+        color: #9fd0ff;
+        opacity: 0;
+        transition: opacity 0.35s;
+        font-variant-numeric: tabular-nums;
+      }
+      .pct.show {
+        opacity: 1;
+      }
+
+      /* состояния ответа */
+      .answer.selected {
+        background: linear-gradient(180deg, #ffe89b, #e0a51f);
+        animation: selPulse 0.75s ease-in-out infinite alternate;
+      }
+      .answer.selected .answer-in {
+        background: linear-gradient(180deg, #3b2d08, #241a04);
+      }
+      .answer.selected .atext {
+        color: #ffe9a8;
+      }
+      .answer.selected .letter {
+        border-color: #ffe89b;
+        background: linear-gradient(180deg, #4a3a0c, #241a04);
+      }
+      .answer.selected .letter i {
+        color: #ffe89b;
+      }
+      @keyframes selPulse {
+        from {
+          filter: brightness(1);
+        }
+        to {
+          filter: brightness(1.35);
+        }
+      }
+
+      .answer.correct {
+        background: linear-gradient(180deg, #6ee7a0, #15803d);
+      }
+      .answer.correct .answer-in {
+        background: linear-gradient(180deg, #0c3d24, #062015);
+      }
+      .answer.correct .atext {
+        color: #b6ffd0;
+      }
+      .answer.correct .letter {
+        border-color: #6ee7a0;
+        background: linear-gradient(180deg, #0d3a22, #062015);
+      }
+      .answer.correct .letter i {
+        color: #6ee7a0;
+      }
+      .answer.correct .pct {
+        color: #6ee7a0;
+      }
+
+      .answer.wrong {
+        background: linear-gradient(180deg, #f87171, #991b1b);
+        animation: shake 0.45s ease;
+      }
+      .answer.wrong .answer-in {
+        background: linear-gradient(180deg, #4a0f14, #260609);
+      }
+      .answer.wrong .atext {
+        color: #ffc9c9;
+      }
+      .answer.wrong .letter {
+        border-color: #f87171;
+        background: linear-gradient(180deg, #431014, #260609);
+      }
+      .answer.wrong .letter i {
+        color: #f87171;
+      }
+      @keyframes shake {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        20% {
+          transform: translateX(-7px);
+        }
+        40% {
+          transform: translateX(6px);
+        }
+        60% {
+          transform: translateX(-4px);
+        }
+        80% {
+          transform: translateX(3px);
+        }
+      }
+
+      .answer.faded {
+        opacity: 0.16;
+        pointer-events: none;
+        filter: grayscale(0.7);
+      }
+
+      /* ---- линии помощи ---- */
+      .lifelines {
+        flex: 0 0 auto;
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        padding-top: 2px;
+        padding-bottom: env(safe-area-inset-bottom);
+      }
+      .ll {
+        flex: 1 1 0;
+        min-width: 0;
+        max-width: 130px;
+        padding: clamp(7px, 1.4vh, 10px) 5px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        font-family: inherit;
+        font-size: clamp(0.6rem, 1.3vh, 0.7rem);
+        font-weight: 800;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        color: #cfe0ff;
+        cursor: pointer;
+        border-radius: 15px;
+        background: linear-gradient(180deg, rgba(40, 62, 130, 0.72), rgba(10, 18, 44, 0.92));
+        border: 1px solid rgba(120, 160, 255, 0.26);
+        transition: 0.2s;
+      }
+      .ll .ic {
+        font-size: clamp(0.82rem, 1.9vh, 1.02rem);
+        line-height: 1;
+      }
+      .ll:active {
+        transform: scale(0.94);
+        background: rgba(70, 110, 210, 0.45);
+      }
+      .ll.used {
+        opacity: 0.26;
+        pointer-events: none;
+        text-decoration: line-through;
+      }
+      .ll.gold {
+        color: var(--gold);
+        border-color: rgba(247, 201, 72, 0.38);
+        background: linear-gradient(180deg, rgba(90, 70, 20, 0.55), rgba(20, 15, 4, 0.9));
+      }
+      .ll.gold:active {
+        background: rgba(140, 105, 30, 0.6);
+      }
+      .ll.hidden {
+        visibility: hidden;
+        pointer-events: none;
+      }
+
+      /* ============================================================
+   МОДАЛКА ЛЕСТНИЦЫ
+   ============================================================ */
+      .modal {
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        background: rgba(2, 5, 14, 0.74);
+        -webkit-backdrop-filter: blur(7px);
+        backdrop-filter: blur(7px);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+      }
+      .modal.open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .sheet {
+        width: 100%;
+        max-width: 480px;
+        max-height: min(84dvh, 84vh);
+        display: flex;
+        flex-direction: column;
+        background: linear-gradient(180deg, #0e1c42, #060c1f);
+        border: 1px solid rgba(96, 140, 235, 0.3);
+        border-bottom: 0;
+        border-radius: 24px 24px 0 0;
+        padding: 16px calc(14px + env(safe-area-inset-right))
+          calc(16px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left));
+        transform: translateY(36px);
+        transition: transform 0.38s cubic-bezier(0.2, 0.85, 0.25, 1);
+        box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.6);
+      }
+      .modal.open .sheet {
+        transform: none;
+      }
+
+      @media (min-width: 720px) {
+        .modal {
+          align-items: center;
+        }
+        .sheet {
+          border-radius: 24px;
+          border-bottom: 1px solid rgba(96, 140, 235, 0.3);
+          max-height: 80vh;
+        }
+      }
+
+      .sheet-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 6px 12px;
+        flex: 0 0 auto;
+      }
+      .sheet-head h3 {
+        font-size: clamp(0.76rem, 1.6vh, 0.86rem);
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--gold);
+      }
+      .sheet-close {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        cursor: pointer;
+        display: grid;
+        place-items: center;
+        font-size: 1.1rem;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: #b9cdf2;
+        font-family: inherit;
+      }
+      .sheet-close:active {
+        transform: scale(0.93);
+      }
+
+      .ladder-list {
+        flex: 1 1 auto;
+        overflow-y: auto;
+        padding: 2px 0;
+        overscroll-behavior: contain;
+      }
+      .ladder-row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: clamp(6px, 1.1vh, 8px) 14px;
+        border-radius: 11px;
+        font-size: clamp(0.82rem, 1.7vh, 0.9rem);
+        color: #8ea3cc;
+        transition:
+          background 0.3s,
+          color 0.3s,
+          opacity 0.3s;
+      }
+      .ladder-row .ln {
+        width: 24px;
+        text-align: right;
+        font-size: clamp(0.68rem, 1.4vh, 0.74rem);
+        opacity: 0.55;
+        font-variant-numeric: tabular-nums;
+      }
+      .ladder-row .lv {
+        font-weight: 800;
+        color: #7f93bb;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: 0.01em;
+        transition: 0.3s;
+      }
+      .ladder-row.safe .lv {
+        color: #ffd977;
+      }
+      .ladder-row.safe .ln {
+        color: #c9922b;
+        opacity: 0.9;
+      }
+      .ladder-row.done {
+        opacity: 0.32;
+      }
+      .ladder-row.done .lv {
+        text-decoration: line-through;
+      }
+      .ladder-row.current {
+        background: linear-gradient(90deg, rgba(247, 201, 72, 0.24), rgba(247, 201, 72, 0.03));
+        color: #fff;
+      }
+      .ladder-row.current .lv {
+        color: var(--gold);
+        transform: scale(1.07);
+        transform-origin: left center;
+      }
+      .ladder-row.current .ln {
+        color: var(--gold);
+        opacity: 1;
+      }
+
+      /* ============================================================
+   ЭКРАН РЕЗУЛЬТАТА
+   ============================================================ */
+      #screen-end {
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        overflow: hidden;
+      }
+      .end-card {
+        width: 100%;
+        max-width: 400px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 14px;
+        padding: clamp(22px, 4vh, 34px) 24px clamp(20px, 3.6vh, 30px);
+        border-radius: 26px;
+        background: linear-gradient(180deg, rgba(24, 44, 100, 0.9), rgba(7, 13, 32, 0.96));
+        border: 1px solid rgba(96, 140, 235, 0.28);
+        box-shadow:
+          0 26px 60px rgba(0, 0, 0, 0.55),
+          inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        animation: cardIn 0.5s cubic-bezier(0.2, 0.9, 0.25, 1) both;
+      }
+      .end-emoji {
+        font-size: clamp(2.2rem, 6vh, 3.1rem);
+        filter: drop-shadow(0 6px 20px rgba(247, 201, 72, 0.45));
+      }
+      .end-title {
+        font-size: clamp(1.2rem, 3vh, 1.5rem);
+        font-weight: 900;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        background: linear-gradient(180deg, #fff8dd, #f7c948 50%, #c9922b);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .end-title.lose {
+        background: linear-gradient(180deg, #ffd0d0, #ef4444 55%, #991b1b);
+        -webkit-background-clip: text;
+        background-clip: text;
+      }
+      .end-prize {
+        font-size: clamp(1.6rem, 5vh, 2.1rem);
+        font-weight: 900;
+        color: var(--gold);
+        font-variant-numeric: tabular-nums;
+        letter-spacing: 0.01em;
+        text-shadow: 0 0 26px rgba(247, 201, 72, 0.35);
+      }
+      .end-prize small {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #a98a3a;
+        letter-spacing: 0.1em;
+      }
+      .end-sub {
+        font-size: clamp(0.8rem, 1.8vh, 0.88rem);
+        color: #9db0d6;
+        line-height: 1.6;
+      }
+      .end-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+        margin-top: 6px;
+      }
+      .end-actions .btn-start {
+        padding: clamp(12px, 2vh, 15px) 20px;
+        font-size: 0.92rem;
+        width: 100%;
+      }
+      .end-actions .btn-ghost {
+        width: 100%;
+      }
+
+      /* ============================================================
+   АДАПТАЦИЯ ПОД НИЗКИЕ ЭКРАНЫ
+   ============================================================ */
+
+      /* --- Телефоны с маленькой высотой (iPhone SE 1/2, Galaxy A-серия) --- */
+      @media (max-height: 640px) {
+        .qcard {
+          padding: 14px 14px 16px;
+          border-radius: 16px;
+        }
+        .qprize {
+          margin-bottom: 9px;
+          padding: 4px 10px;
+        }
+        .answers {
+          gap: 7px;
+        }
+        .answer-in {
+          min-height: 48px;
+          padding: 9px 18px;
+        }
+        .game-body-in {
+          gap: 8px;
+          padding: 4px 0;
+        }
+        .ll {
+          padding: 7px 4px;
+          border-radius: 12px;
+        }
+        .topbar {
+          gap: 8px;
+        }
+        .title {
+          font-size: clamp(1.3rem, 5.6vh, 2rem);
+        }
+        .logo-wrap {
+          gap: 12px;
+        }
+        #screen-start {
+          gap: 20px;
+        }
+      }
+
+      /* --- Очень низкие экраны (SE в ландшафте, старые устройства) --- */
+      @media (max-height: 520px) {
+        .qcard {
+          padding: 10px 12px 12px;
+          border-radius: 14px;
+        }
+        .qprize {
+          margin-bottom: 6px;
+          font-size: 0.58rem;
+          padding: 3px 9px;
+        }
+        .qtext {
+          font-size: clamp(0.85rem, 3.6vh + 0.6vw, 1rem);
+          line-height: 1.35;
+        }
+        .answer-in {
+          min-height: 42px;
+          padding: 7px 16px;
+          gap: 9px;
+        }
+        .atext {
+          font-size: clamp(0.8rem, 2.8vh, 0.9rem);
+        }
+        .letter {
+          width: 22px;
+          height: 22px;
+        }
+        .letter i {
+          font-size: 0.68rem;
+        }
+        .ll .ic {
+          font-size: 0.85rem;
+        }
+        .ll {
+          font-size: 0.55rem;
+          padding: 6px 3px;
+        }
+        .p-main {
+          font-size: 0.68rem;
+        }
+        .p-val {
+          font-size: 0.66rem;
+        }
+        .game-body-in {
+          gap: 6px;
+          padding: 2px 0;
+        }
+        .lifelines {
+          gap: 6px;
+        }
+        #screen-start {
+          gap: 14px;
+        }
+        .emblem {
+          width: 60px;
+          height: 60px;
+        }
+        .emblem span {
+          font-size: 1.5rem;
+        }
+        .desc {
+          font-size: 0.78rem;
+          line-height: 1.45;
+        }
+      }
+
+      /* --- Очень высокие (iPad, планшеты, складные) --- */
+      @media (min-height: 900px) {
+        .game-body-in {
+          gap: 16px;
+        }
+        .answer-in {
+          min-height: 66px;
+        }
+        .qcard {
+          padding: 26px 22px 28px;
+        }
+        .lifelines {
+          gap: 12px;
+        }
+      }
+
+      /* ============================================================
+   ЛАНДШАФТ НА ТЕЛЕФОНЕ
+   ============================================================ */
+      @media (orientation: landscape) and (max-height: 520px) {
+        .answers {
+          grid-template-columns: 1fr 1fr;
+          gap: 6px;
+        }
+        .qcard {
+          padding: 8px 12px 10px;
+        }
+        .qprize {
+          display: none;
+        } /* сумма уже есть в топбаре */
+        .qtext {
+          font-size: clamp(0.8rem, 4vh, 1rem);
+          line-height: 1.3;
+        }
+        .answer-in {
+          min-height: 38px;
+          padding: 6px 14px;
+        }
+        .letter {
+          width: 20px;
+          height: 20px;
+        }
+        .letter i {
+          font-size: 0.66rem;
+        }
+        .game-body-in {
+          gap: 5px;
+        }
+        .lifelines {
+          padding-top: 0;
+          gap: 5px;
+        }
+        .ll {
+          padding: 5px 3px;
+          font-size: 0.5rem;
+          border-radius: 10px;
+        }
+        .ll .ic {
+          font-size: 0.75rem;
+        }
+
+        .sheet {
+          max-height: 96dvh;
+          border-radius: 18px 18px 0 0;
+          padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+        }
+        .ladder-row {
+          padding: 5px 12px;
+          font-size: 0.78rem;
+        }
+        .ladder-row .ln {
+          font-size: 0.66rem;
+        }
+      }
+
+      /* ============================================================
+   СКЛАДНЫЕ ЭКРАНЫ И ПЛАНШЕТЫ В ЛАНДШАФТЕ
+   ============================================================ */
+      @media (orientation: landscape) and (min-height: 521px) and (max-height: 800px) {
+        .qcard {
+          padding: 14px 18px 16px;
+        }
+        .qtext {
+          font-size: clamp(0.95rem, 2vh + 1vw, 1.1rem);
+        }
+        .answer-in {
+          min-height: 50px;
+        }
+        .game-body-in {
+          gap: 10px;
+        }
+      }
+
+      /* ============================================================
+   ПРЕДПОЧТЕНИЯ ПОЛЬЗОВАТЕЛЯ
+   ============================================================ */
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.001s !important;
+          transition-duration: 0.001s !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="bg"></div>
+
+    <div class="app">
+      <!-- ================= СТАРТ ================= -->
+      <section id="screen-start" class="screen active">
+        <div class="logo-wrap">
+          <div class="emblem"><span>🏆</span></div>
+          <h1 class="title">Кто хочет<br />стать знатоком?</h1>
+          <div class="divider"></div>
+          <p class="subtitle">Исламская викторина</p>
+        </div>
+
+        <p class="desc">
+          15 вопросов, 3 подсказки и путь к миллиону очков. Вопросы выбираются случайно из базы.
+        </p>
+
+        <button class="btn-start" id="btn-play">Начать игру</button>
+
+        <div class="opts">
+          <button class="chip on" id="opt-sound"><span class="dot"></span>Звук</button>
+          <button class="chip" id="opt-timer"><span class="dot"></span>Таймер 45 сек</button>
+        </div>
+
+        <p class="footnote" id="bank-info"></p>
+      </section>
+
+      <!-- ================= ИГРА ================= -->
+      <section id="screen-game" class="screen">
+        <div class="topbar">
+          <button class="icon-btn" id="btn-ladder" aria-label="Лестница призов">🏆</button>
+          <div class="progress">
+            <div class="p-main">Вопрос <b id="q-num">1</b> из <b id="q-total">15</b></div>
+            <div class="p-val" id="q-value">100 очков</div>
+          </div>
+          <button class="icon-btn" id="btn-sound2" aria-label="Звук">🔊</button>
+        </div>
+
+        <div class="timer-track" id="timer-track">
+          <div class="timer-fill" id="timer-fill"></div>
+        </div>
+
+        <div class="game-body">
+          <div class="game-body-in">
+            <div class="qcard" id="qcard">
+              <div class="qprize" id="q-prize">100 очков</div>
+              <div class="qtext" id="q-text">Загрузка…</div>
+            </div>
+            <div class="answers" id="answers"></div>
+          </div>
+        </div>
+
+        <div class="lifelines">
+          <button class="ll" id="ll-50"><span class="ic">½</span>50:50</button>
+          <button class="ll" id="ll-aud"><span class="ic">👥</span>Зал</button>
+          <button class="ll" id="ll-swap"><span class="ic">🔄</span>Замена</button>
+          <button class="ll gold" id="ll-walk"><span class="ic">🚪</span>Забрать</button>
+        </div>
+      </section>
+
+      <!-- ================= РЕЗУЛЬТАТ ================= -->
+      <section id="screen-end" class="screen">
+        <div class="end-card">
+          <div class="end-emoji" id="end-emoji">🏆</div>
+          <h2 class="end-title" id="end-title">Победа!</h2>
+          <div class="end-prize" id="end-prize">0 <small>очков</small></div>
+          <p class="end-sub" id="end-sub">Правильных ответов: 0 из 15</p>
+          <div class="end-actions">
+            <button class="btn-start" id="btn-again">Играть снова</button>
+            <button class="btn-ghost" id="btn-menu">В меню</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ================= МОДАЛКА ЛЕСТНИЦЫ ================= -->
+    <div class="modal" id="modal-ladder">
+      <div class="sheet">
+        <div class="sheet-head">
+          <h3>Лестница призов</h3>
+          <button class="sheet-close" id="close-ladder">✕</button>
+        </div>
+        <div class="ladder-list" id="ladder-list"></div>
+        <button class="btn-ghost" id="btn-exit" style="margin-top: 12px">Выйти в меню</button>
+      </div>
+    </div>
+
+    <script>
+      /* ============================================================
+   БАНК ВОПРОСОВ
+   ------------------------------------------------------------
+   Формат:
+   {
+     q: "текст вопроса",
+     a: ["вариант 1", "вариант 2", "вариант 3", "вариант 4"],
+     c: 2   // индекс правильного ответа (0..3)
+   }
+   Чтобы добавить вопрос — просто допишите объект в конец массива.
+   ============================================================ */
+      const QUESTIONS = [
+        {
+          q: 'В каком месяце началось ниспослание Корана?',
+          a: ['В месяце Ша‘абан', 'В месяце Зу-ль-Хиджа', 'В месяце Рамадан', 'В месяце Сафар'],
+          c: 2,
+        },
+
+        {
+          q: 'В каком месяце находится день ‘Арафа?',
+          a: ['В месяце Ша‘абан', 'В месяце Рамадан', 'В месяце Зу-ль-Хиджа', 'В месяце Сафар'],
+          c: 2,
+        },
+
+        {
+          q: 'В каком месяце произошла битва при Бадре?',
+          a: ['В месяце Ша‘абан', 'В месяце Рамадан', 'В месяце Зу-ль-Хиджа', 'В месяце Сафар'],
+          c: 1,
+        },
+
+        {
+          q: 'Какой по счёту в лунном календаре является месяц Рамадан?',
+          a: ['7-ой', '8-ой', '9-ый', '10-ый'],
+          c: 2,
+        },
+
+        {
+          q: 'Ночь Предопределения лучше...',
+          a: ['1000 дней', '1000 недель', '1000 месяцев', '1000 лет'],
+          c: 2,
+        },
+
+        {
+          q: 'Кто соблюдал добровольный пост через день?',
+          a: [
+            'Пророк ‘Иса (мир ему)',
+            'Пророк Муса (мир ему)',
+            'Пророк Давуд (мир ему)',
+            'Пророк Закариййа (мир ему)',
+          ],
+          c: 2,
+        },
+
+        {
+          q: 'Сколько бедняков должен накормить мусульманин (имея возможность это сделать), если он не в состоянии поститься весь месяц Рамадан?',
+          a: ['10', '20', '30', '40'],
+          c: 2,
+        },
+
+        {
+          q: 'В какой суре находится повеление соблюдать пост в месяц Рамадан?',
+          a: ['В суре «аль-Бакара»', 'В суре «ан-Нур»', 'В суре «Юсуф»', 'В суре «аль-Кахф»'],
+          c: 0,
+        },
+
+        {
+          q: 'Дочерей пророка Мухаммада ﷺ звали: Фатыма, Рукъайя, Умм-Кулсум и ...',
+          a: ['Хавса', 'Амина', 'Софиййа', 'Зайнаб'],
+          c: 3,
+        },
+
+        {
+          q: 'Кто произнёс это дуа согласно Корану: «Господи, я поступил несправедливо по отношению к себе. Прости же меня!»?',
+          a: [
+            'Пророк Давуд (мир ему)',
+            'Пророк Ибрахим (мир ему)',
+            'Пророк Муса (мир ему)',
+            'Пророк Нух (мир ему)',
+          ],
+          c: 2,
+        },
+
+        { q: 'Сколько столпов у Ислама?', a: ['3', '4', '5', '6'], c: 2 },
+
+        {
+          q: 'Как зовут ангела, трубный глас которого, согласно исламскому вероучению, возвестит о наступлении Конца света и приходе Дня воскрешения?',
+          a: ['Джибри́ль', 'Исра́фи́ль', 'Ми́ка́и́ль', 'Ангел смерти'],
+          c: 1,
+        },
+
+        {
+          q: 'Какого из детей пророка Мухаммада ﷺ родила не Хадиджа?',
+          a: ['Фа́тыму', 'Умму Кульсум', 'Ибрахима', "'АбдуЛлаха"],
+          c: 2,
+        },
+
+        {
+          q: 'Кто является третьим праведным халифом?',
+          a: [
+            "'Али ибн Абу Толиб",
+            "'Усман ибн 'Аффан",
+            'Абу Бакр ас-Сыддикъ',
+            "'Умар ибн аль-Хаттаб",
+          ],
+          c: 1,
+        },
+
+        {
+          q: 'Как звали пророка, который был отправлен к мадьянитам?',
+          a: ['Худ (мир ему)', "Шу'айб (мир ему)", 'Салих (мир ему)', 'Юнус (мир ему)'],
+          c: 1,
+        },
+
+        {
+          q: 'Какого пророка родные братья бросили в колодец?',
+          a: ['Мусу (мир ему)', 'Идриса (мир ему)', 'Ибрахима (мир ему)', 'Юсуфа (мир ему)'],
+          c: 3,
+        },
+
+        {
+          q: 'В какой суре повторяется этот аят: «Какую же из милостей вашего Господа вы считаете ложью?»?',
+          a: [
+            'В суре «Йа Син»',
+            'В суре «Аль-Бакъара»',
+            'В суре «Ар-Рохман»',
+            'В суре «Али Имран»',
+          ],
+          c: 2,
+        },
+
+        {
+          q: 'Сколько лет было пророку Мухаммаду ﷺ, когда началась его пророческая миссия?',
+          a: ['25', '33', '40', '63'],
+          c: 2,
+        },
+
+        {
+          q: 'Какое название получил год, в котором родился пророк Мухаммад ﷺ?',
+          a: ['Год лошади', 'Год верблюда', 'Год жирафа', 'Год слона'],
+          c: 3,
+        },
+
+        {
+          q: 'Как звали дядю пророка Мухаммада ﷺ, у которого было прозвище «Лев Аллаха»?',
+          a: ['Зубайр', 'Абу Толиб', "'Аббас", 'Хамза'],
+          c: 3,
+        },
+
+        {
+          q: 'К какому народу Аллах отправил пророка Салиха (мир ему)?',
+          a: ["К 'Адитам", 'К Самудянам', 'К Мадьянитам', 'К Бану Исраиль'],
+          c: 1,
+        },
+
+        {
+          q: 'Какой пророк является дедушкой пророка Юсуфа (мир ему)?',
+          a: ['Якъуб (мир ему)', "Исма'ил (мир ему)", 'Ибрахим (мир ему)', 'Исхакъ (мир ему)'],
+          c: 3,
+        },
+
+        {
+          q: "Как звали пророка, которого Аллах отправил к 'Адитам?",
+          a: ['Юнус (мир ему)', 'Салих (мир ему)', 'ХӀуд (мир ему)', "Шу'айб (мир ему)"],
+          c: 2,
+        },
+
+        { q: 'Сколько у пророка Мухаммада ﷺ было дочерей?', a: ['1', '2', '3', '4'], c: 3 },
+
+        {
+          q: "У пророка Мухаммада ﷺ было три сына: Къосим, 'АбдуЛлах и... Как звали 3-го?",
+          a: ["'Абдуррохман", 'Ибрахим', "Исма'ил", "'Иса"],
+          c: 1,
+        },
+
+        {
+          q: 'Как звали отца пророка Мухаммада ﷺ?',
+          a: ["'АбдуЛлах", "'Абдуль-Мутталиб", 'Абу Толиб', 'Хамза'],
+          c: 0,
+        },
+
+        {
+          q: 'Как звали мать пророка Мухаммада ﷺ?',
+          a: ['Халима', 'Умм Айман', 'Хадиджа', 'Амина'],
+          c: 3,
+        },
+
+        {
+          q: 'Как звали дедушку пророка Мухаммада ﷺ?',
+          a: ['Варака', "'Абдуль-Мутталиб", 'Вахб', 'Абу Толиб'],
+          c: 1,
+        },
+
+        { q: 'Сколько столпов у Имана?', a: ['5', '6', '7', '8'], c: 1 },
+
+        {
+          q: 'Сколько ракатов обязан совершить мусульманин в течение суток?',
+          a: ['12', '15', '17', '19'],
+          c: 2,
+        },
+
+        {
+          q: 'Кто является вторым праведным халифом?',
+          a: [
+            "'АбдурРохман ибн 'Аув",
+            'Абу Бакр ас-Сыддикъ',
+            "'Усман ибн 'Аффан",
+            "'Умар ибн аль-Хаттаб",
+          ],
+          c: 3,
+        },
+
+        {
+          q: 'Какой по счёту является сура «Юсуф» в Коране?',
+          a: ['11-ой', '12-ой', '13-ой', '14-ой'],
+          c: 1,
+        },
+
+        { q: 'Сколько родных сыновей было у матери Юсуфа?', a: ['1', '2', '10', '12'], c: 1 },
+
+        {
+          q: 'Сколько сыновей было у пророка Якъуба (мир ему)?',
+          a: ['10', '12', '14', '16'],
+          c: 1,
+        },
+
+        {
+          q: 'Какая птица сообщила Сулейману (мир ему) о Царице Сабийской?',
+          a: ['Воробей', 'Дятел', 'Удод', 'Ястреб'],
+          c: 2,
+        },
+
+        {
+          q: 'Какой пророк первым начал изготовлять кольчуги?',
+          a: [
+            'Пророк Нух (мир ему)',
+            'Пророк Юнус (мир ему)',
+            'Пророк Идрис (мир ему)',
+            'Пророк Давуд (мир ему)',
+          ],
+          c: 3,
+        },
+
+        {
+          q: 'Кто является первым посланником Аллаха?',
+          a: ['Адам (мир ему)', 'Ибрахим (мир ему)', 'Муса (мир ему)', 'Нух (мир ему)'],
+          c: 3,
+        },
+
+        {
+          q: 'Кто является первым пророком?',
+          a: ['Адам (мир ему)', 'Ибрахим (мир ему)', 'Муса (мир ему)', 'Нух (мир ему)'],
+          c: 0,
+        },
+
+        {
+          q: 'Как называется гора, к которой причалил ковчег Нуха (мир ему), согласно Корану?',
+          a: ['Арафат', 'Ухуд', 'Джабаль ан-Нур', 'аль-Джуди'],
+          c: 3,
+        },
+
+        {
+          q: 'Как называется гора, в которой находится пещера Хира?',
+          a: ['Арафат', 'Ухуд', 'Джабаль ан-Нур', 'аль-Джуди'],
+          c: 2,
+        },
+
+        {
+          q: 'Какой пророк разговаривал в колыбели?',
+          a: ["Исма'ил (мир ему)", 'Муса (мир ему)', "'Иса (мир ему)", 'Мухаммад ﷺ'],
+          c: 2,
+        },
+
+        {
+          q: 'Чей бег между холмами ас-Сафа и аль-Марва стал впоследствии обрядом Хаджа?',
+          a: ['Ибрахима (мир ему)', "Исма'ила (мир ему)", 'Сары', 'Хаджар'],
+          c: 3,
+        },
+
+        {
+          q: 'Чей сын умер неверующим, согласно Корану?',
+          a: ['Мусы (мир ему)', 'Худа (мир ему)', 'Идриса (мир ему)', 'Нуха (мир ему)'],
+          c: 3,
+        },
+
+        {
+          q: 'Какой сподвижник был женат на Умм Кульсум, дочери Пророка ﷺ?',
+          a: [
+            'Абу Бакр ас-Сыддикъ',
+            "'Умар ибн аль-Хаттаб",
+            "'Усман ибн 'Аффан",
+            "'Али ибн Абу Толиб",
+          ],
+          c: 2,
+        },
+
+        {
+          q: 'Какому пророку Аллах вывел из скалы верблюдицу в качестве знамения?',
+          a: [
+            "Пророку Шу'айбу (мир ему)",
+            'Пророку Салиху (мир ему)',
+            'Пророку Закариййи (мир ему)',
+            'Пророку Давуду (мир ему)',
+          ],
+          c: 1,
+        },
+
+        {
+          q: 'Какой пророк находился среди своего народа 950 лет, согласно Корану?',
+          a: [
+            'Пророк Юнус (мир ему)',
+            'Пророк Худ (мир ему)',
+            'Пророк Идрис (мир ему)',
+            'Пророк Нух (мир ему)',
+          ],
+          c: 3,
+        },
+
+        {
+          q: 'Кто является дедушкой Беньямина?',
+          a: [
+            'Пророк Ибрахим (мир ему)',
+            'Пророк Якъуб (мир ему)',
+            'Пророк Исхакъ (мир ему)',
+            "Пророк Исма'ил (мир ему)",
+          ],
+          c: 2,
+        },
+
+        {
+          q: 'Какой пророк побывал во чреве кита?',
+          a: [
+            'Пророк Сулейман (мир ему)',
+            'Пророк Яхья (мир ему)',
+            "Пророк Шу'айб (мир ему)",
+            'Пророк Юнус (мир ему)',
+          ],
+          c: 3,
+        },
+
+        {
+          q: "К какому народу был послан пророк Шу'айб (мир ему)?",
+          a: ['К Мадьянитам', "К 'Адитам", 'К Самудьянам', 'К жителям Рассы'],
+          c: 0,
+        },
+
+        {
+          q: 'Какой пророк убил Джалута?',
+          a: [
+            'Пророк Муса (мир ему)',
+            'Пророк Шис (мир ему)',
+            'Пророк Сулейман (мир ему)',
+            'Пророк Давуд (мир ему)',
+          ],
+          c: 3,
+        },
+
+        {
+          q: 'Кто отправил удода с письмом к Царице Сабийской?',
+          a: [
+            'Пророк Мухаммад ﷺ',
+            'Пророк Сулейман (мир ему)',
+            'Пророк Ибрахим (мир ему)',
+            'Пророк Юсуф (мир ему)',
+          ],
+          c: 1,
+        },
+
+        {
+          q: 'Кто обратился с такой мольбой к Аллаху, согласно Корану: «Господи! Не оставляй меня одиноким, и Ты — Наилучший из наследников»?',
+          a: [
+            'Пророк Муса (мир ему)',
+            'Пророк Мухаммад ﷺ',
+            'Пророк Нух (мир ему)',
+            'Пророк Закария (мир ему)',
+          ],
+          c: 3,
+        },
+
+        {
+          q: 'Как называли Марьям её родные согласно Корану?',
+          a: ['Тетей Яхьи', 'Дочерью Закариййи', 'Сестрой Харуна', 'Внучкой Якъуба'],
+          c: 2,
+        },
+
+        {
+          q: 'В какой день недели родился пророк Мухаммад ﷺ?',
+          a: ['Понедельник', 'Среда', 'Пятница', 'Воскресенье'],
+          c: 0,
+        },
+
+        {
+          q: 'В какой день недели был создан пророк Адам (мир ему)?',
+          a: ['Понедельник', 'Среда', 'Пятница', 'Воскресенье'],
+          c: 2,
+        },
+
+        {
+          q: 'Какой день недели в арабском языке является первым?',
+          a: ['Понедельник', 'Среда', 'Пятница', 'Воскресенье'],
+          c: 3,
+        },
+
+        {
+          q: 'Какой день недели был запрещён для ловли рыбы для сынов Исраиля согласно Корану?',
+          a: ['Вторник', 'Четверг', 'Суббота', 'В Коране не говорится об этом'],
+          c: 2,
+        },
+
+        {
+          q: 'Сколько дней пророк Закарийя (мир ему) разговаривал с людьми только жестами согласно Корану?',
+          a: ['1', '3', '5', '7'],
+          c: 1,
+        },
+
+        {
+          q: 'В исламском летосчислении новый день месяца и недели начинается...',
+          a: ['В полночь', 'В полдень', 'С восходом солнца', 'С заходом солнца'],
+          c: 3,
+        },
+
+        {
+          q: 'Сколько лет длилась пророческая миссия пророка Мухаммада ﷺ?',
+          a: ['13', '15', '21', '23'],
+          c: 3,
+        },
+
+        {
+          q: 'На каком небе пророк Мухаммад ﷺ встретил пророка Адама (мир ему) в Ночь Вознесения?',
+          a: ['На первом', 'На третьем', 'На пятом', 'На седьмом'],
+          c: 0,
+        },
+
+        {
+          q: 'Кто из перечисленных пророков является внуком пророка Ибрахима (мир ему)?',
+          a: ['Юсуф (мир ему)', 'Исхакъ (мир ему)', 'Якъуб (мир ему)', "Исма'ил (мир ему)"],
+          c: 2,
+        },
+
+        {
+          q: 'Кто согласно Корану умел толковать сны?',
+          a: ['Юнус (мир ему)', 'Идрис (мир ему)', 'Харун (мир ему)', 'Юсуф (мир ему)'],
+          c: 3,
+        },
+
+        {
+          q: 'В каком преступлении обвиняли Юсуфа (мир ему) его братья по отцу?',
+          a: ['В убийстве', 'В прелюбодеянии', 'В воровстве', 'В лжесвидетельстве'],
+          c: 2,
+        },
+
+        {
+          q: 'Какое животное растерзало Юсуфа (мир ему) согласно словам его братьев по отцу?',
+          a: ['Медведь', 'Волк', 'Тигр', 'Крокодил'],
+          c: 1,
+        },
+
+        {
+          q: 'Сколько звёзд увидел пророк Юсуф (мир ему) во сне?',
+          a: ['10', '11', '12', '13'],
+          c: 1,
+        },
+
+        {
+          q: 'Кем приходилась визирю та женщина, которая хотела соблазнить пророка Юсуфа (мир ему)?',
+          a: ['Служанкой', 'Дочерью', 'Племянницей', 'Женой'],
+          c: 3,
+        },
+
+        {
+          q: 'Сколько всего коров увидел царь Египта во сне согласно Корану?',
+          a: ['3', '7', '11', '14'],
+          c: 3,
+        },
+
+        {
+          q: 'Чем занимался тот, кто рассказал царю Египта о том, кто может поведать о толковании его сна?',
+          a: ['Пёк хлеб', 'Изготавливал кольчуги', 'Разливал вино', 'Играл в спектаклях'],
+          c: 2,
+        },
+
+        {
+          q: 'На каком небе пророк Мухаммад ﷺ встретил пророка Юсуфа (мир ему) в Ночь Вознесения?',
+          a: ['На первом', 'На третьем', 'На пятом', 'На седьмом'],
+          c: 1,
+        },
+
+        {
+          q: 'С какой буквы начинается Коран в мусхафе?',
+          a: ['ب ба', 'ا алиф', 'س син', 'م мим'],
+          c: 0,
+        },
+
+        { q: 'Последняя буква Корана в мусхафе?', a: ['ب ба', 'ا алиф', 'س син', 'م мим'], c: 2 },
+
+        { q: 'Сколько сур в Коране?', a: ['111', '112', '113', '114'], c: 3 },
+
+        {
+          q: 'В какой битве был убит дядя пророка Мухаммада ﷺ Хамза?',
+          a: ['В битве при Бадре', 'В битве при Ухуде', 'В битве при Табуке', 'В битве при Муте'],
+          c: 1,
+        },
+
+        {
+          q: 'В какую местность переселялись первые мусульмане из Мекки до переселения в Медину?',
+          a: ['В Нигерию', 'В Сомали', 'В Эфиопию', 'В Египет'],
+          c: 2,
+        },
+
+        {
+          q: 'Кто согласно Корану произнёс дуа: «Господи! Воистину, я нуждаюсь в любом благе, которое Ты ниспошлёшь мне»?',
+          a: [
+            'Пророк Ибрахим (мир ему)',
+            'Пророк Юнус (мир ему)',
+            'Пророк Айюб (мир ему)',
+            'Пророк Муса (мир ему)',
+          ],
+          c: 3,
+        },
+
+        {
+          q: "На втором небе пророк Мухаммад ﷺ в Ночь Вознесения встретил пророка 'Ису (мир ему) и ...",
+          a: [
+            'Пророка Нуха (мир ему)',
+            'Пророка Закарийю (мир ему)',
+            'Пророка Яхью (мир ему)',
+            'Пророка Мусу (мир ему)',
+          ],
+          c: 2,
+        },
+
+        {
+          q: 'Какой месяц наступает после месяца Рамадана?',
+          a: ['Раджаб', 'Шавваль', 'Мухаррам', "Ша'абан"],
+          c: 1,
+        },
+
+        {
+          q: 'Какое животное Всевышний повелел зарезать сынам Исраиля и впоследствии ударить его частью убитого?',
+          a: ['Лошадь', 'Корову', 'Верблюдицу', 'Овцу'],
+          c: 1,
+        },
+
+        {
+          q: 'Самая короткая сура в Коране?',
+          a: ["аль-'Аср", 'аль-Филь', 'аль-Каусар', 'аль-Ихляс'],
+          c: 2,
+        },
+
+        {
+          q: 'Назовите суру, в которой находится аят аль-Курси:',
+          a: ['аль-Кахф', 'аль-Бакара', 'ар-Рохман', 'Ясин'],
+          c: 1,
+        },
+
+        {
+          q: 'Про какую суру пророк Мухаммад ﷺ сказал, что она равняется трети Корана?',
+          a: ['аль-Бакара', 'Ясин', 'аль-Ихляс', "аль-'Аср"],
+          c: 2,
+        },
+
+        {
+          q: 'С какого момента (года) ведётся исламское летоисчисление?',
+          a: [
+            'С момента рождения пророка Мухаммада ﷺ',
+            'С момента ниспослания первого откровения',
+            'С момента переселения Пророка ﷺ и мусульман в Медину',
+            'С момента смерти Пророка ﷺ',
+          ],
+          c: 2,
+        },
+
+        {
+          q: 'Кто является сыном пророка Закариййи (мир ему)?',
+          a: ['Яхья (мир ему)', 'Даниял (мир ему)', 'Юнус (мир ему)', 'Идрис (мир ему)'],
+          c: 0,
+        },
+
+        {
+          q: 'Какому пророку Аллах даровал Забур (Псалтырь)?',
+          a: ['Ибрахиму (мир ему)', 'Нуху (мир ему)', 'Давуду (мир ему)', 'Сулейману (мир ему)'],
+          c: 2,
+        },
+
+        {
+          q: 'Посланник Аллаха ﷺ сказал: «Если бы после меня был пророк, то им бы был...»',
+          a: [
+            'Абу Бакр ас-Сыддикъ',
+            "'Умар ибн аль-Хаттаб",
+            "'Усман ибн 'Аффан",
+            "'Али ибн Абу Толиб",
+          ],
+          c: 1,
+        },
+
+        { q: 'Как звали отца Марьям?', a: ['Харун', 'Закариййа', "'Имран", 'Идрис'], c: 2 },
+
+        {
+          q: 'Кто закрыл выход племенам Яджудж и Маджудж?',
+          a: ['Адам (мир ему)', 'Сулейман (мир ему)', 'Давуд (мир ему)', 'Зу-ль-Карнейн (мир ему)'],
+          c: 3,
+        },
+
+        {
+          q: 'Какому пророку Аллах подчинил ветер?',
+          a: ['Мусе (мир ему)', 'Давуду (мир ему)', "'Исе (мир ему)", 'Сулейману (мир ему)'],
+          c: 3,
+        },
+
+        {
+          q: 'Какому пророку Аллах ниспослал Таурат (Тору)?',
+          a: ['Нуху (мир ему)', 'Мусе (мир ему)', 'Ибрахиму (мир ему)', "'Исе (мир ему)"],
+          c: 1,
+        },
+
+        {
+          q: 'Какому пророку Аллах ниспослал Инджиль (Евангелие)?',
+          a: ['Мусе (мир ему)', "'Исе (мир ему)", 'Ибрахиму (мир ему)', 'Сулейману (мир ему)'],
+          c: 1,
+        },
+
+        {
+          q: 'Раскалывание Луны было свидетельством пророческой миссии какого пророка?',
+          a: ['Салиха (мир ему)', 'Худа (мир ему)', "Шу'айба (мир ему)", 'Мухаммада ﷺ'],
+          c: 3,
+        },
+
+        {
+          q: 'На сколько джузов (частей) делится Коран?',
+          a: ['На 10', 'На 20', 'На 30', 'На 40'],
+          c: 2,
+        },
+
+        {
+          q: 'Как называется первое крупное сражение между мусульманами и многобожниками?',
+          a: ['Битва у рва', 'Битва при Ухуде', 'Битва при Бадре', 'Битва при Табуке'],
+          c: 2,
+        },
+
+        {
+          q: 'Сколько лет было пророку Мухаммаду ﷺ, когда он умер?',
+          a: ['57', '59', '63', '65'],
+          c: 2,
+        },
+
+        {
+          q: "Чьей дочерью была 'Айша, жена пророка Мухаммада ﷺ?",
+          a: [
+            "Са'ида ибн Зайда",
+            "'АбдурРохмана ибн 'Авфа",
+            "'Умара ибн аль-Хаттаба",
+            'Абу Бакра ас-Сыддикъа',
+          ],
+          c: 3,
+        },
+
+        {
+          q: 'Какое нужно совершить действие, чтоб вступить в лоно Ислама?',
+          a: [
+            'Выплатить закят',
+            'Совершить намаз',
+            'Произнести шахаду',
+            'Совершить гусль (полное омовение)',
+          ],
+          c: 2,
+        },
+
+        {
+          q: 'Сколько лет юноши пещеры пробыли в ней?',
+          a: ['103 года', '206 лет', '309 лет', '412 лет'],
+          c: 2,
+        },
+
+        {
+          q: 'Какой пророк увидел во сне, что перед ним пали ниц небесные светила?',
+          a: ['Адам (мир ему)', 'Айюб (мир ему)', 'Сулейман (мир ему)', 'Юсуф (мир ему)'],
+          c: 3,
+        },
+
+        {
+          q: 'Где пророк Муса должен был встретить Хидра?',
+          a: [
+            'В том месте, где он потеряет свой посох',
+            'В том месте, где он и его слуга потеряют золотые монеты',
+            'В том месте, где они потеряют рыбу',
+            'В том месте, где он потеряет свою накидку',
+          ],
+          c: 2,
+        },
+
+        {
+          q: 'Скольким локтям был равен рост пророка Адама (мир ему)?',
+          a: ['20', '40', '60', '80'],
+          c: 2,
+        },
+
+        {
+          q: 'Как буквально переводится «Зу-ль-Къорнайн»?',
+          a: [
+            'Обладатель двух мечей',
+            'Обладатель двух колодцев',
+            'Обладатель двух рогов',
+            'Обладатель двух сияний',
+          ],
+          c: 2,
+        },
+
+        {
+          q: 'Какой пророк являлся опекуном Марьям?',
+          a: ['Харун (мир ему)', 'Закариййа (мир ему)', 'Яхья (мир ему)', 'Давуд (мир ему)'],
+          c: 1,
+        },
+
+        {
+          q: 'Какого пророка встретил пророк Мухаммад ﷺ на четвёртом небе в Ночь Вознесения?',
+          a: ['Идриса (мир ему)', 'Юсуфа (мир ему)', 'Харуна (мир ему)', 'Мусу (мир ему)'],
+          c: 0,
+        },
+
+        {
+          q: 'Какого пророка Аллах испытал повелением принести в жертву собственного сына?',
+          a: ['Давуда (мир ему)', 'Ибрахима (мир ему)', 'Нуха (мир ему)', 'Адама (мир ему)'],
+          c: 1,
+        },
+
+        {
+          q: 'Какой народ высекал жилища в скалах, согласно Корану?',
+          a: [
+            'Народ Юнуса',
+            'Самудьяне (народ Салиха)',
+            'Ӏадиты (народ Худа)',
+            "Мадьяниты (народ Шу'айба)",
+          ],
+          c: 1,
+        },
+
+        {
+          q: "Как звали дочь 'Умара ибн аль-Хаттаба, которая являлась женой пророка Мухаммада ﷺ?",
+          a: ['Хадиджа', 'Зайнаб', "'Айша", 'Хавса'],
+          c: 3,
+        },
+
+        {
+          q: 'Как называется соблюдение добровольного поста через день?',
+          a: [
+            'Пост Адама (мир ему)',
+            'Пост Идриса (мир ему)',
+            'Пост Давуда (мир ему)',
+            'Пост Мусы (мир ему)',
+          ],
+          c: 2,
+        },
+
+        {
+          q: 'По соизволению Аллаха этот пророк лепил безжизненные глиняные изваяния птиц и дул на них, после чего те превращались в живых птиц.',
+          a: ['Сулейман (мир ему)', '‘Иса (мир ему)', 'Давуд (мир ему)', 'Идрис (мир ему)'],
+          c: 1,
+        },
+
+        {
+          q: 'Назовите пророка, который произнёс это ду‘а, согласно Корану: «Воистину, меня коснулось зло, а ведь Ты — Милосерднейший из милосердных»?',
+          a: ['Адам (мир ему)', 'Якъуб (мир ему)', 'Муса (мир ему)', 'Айюб (мир ему)'],
+          c: 3,
+        },
+
+        {
+          q: 'Когда многобожники бросили этого пророка в огонь, Аллах приказал огню стать для него прохладой и спасением.',
+          a: ['Ибрахим (мир ему)', 'Муса (мир ему)', 'Салих (мир ему)', 'Исхакъ (мир ему)'],
+          c: 0,
+        },
+
+        {
+          q: 'Назовите пророка, который произнёс это ду‘а, согласно Корану: «Нет божества достойного поклонения, кроме Тебя. Пречист Ты. Воистину, я был одним из беззаконников»?',
+          a: ['Адам (мир ему)', 'Худ (мир ему)', 'Юнус (мир ему)', 'Муса (мир ему)'],
+          c: 2,
+        },
+
+        {
+          q: 'Назовите пророка, который произнёс это ду‘а, согласно Корану: «Господи! Включи меня и часть моего потомства в число тех, кто совершает намаз. Господь наш! Прими мою мольбу»?',
+          a: ['Адам (мир ему)', 'Ибрахим (мир ему)', 'Нух (мир ему)', 'Давуд (мир ему)'],
+          c: 1,
+        },
+
+        {
+          q: 'Кто знает, когда наступит Час (Конец Света), помимо Аллаха?',
+          a: ['Ангел Джабраил (мир ему)', 'Ангел Исрафиль (мир ему)', 'Пророк Мухаммад ﷺ', 'Никто'],
+          c: 3,
+        },
+
+        {
+          q: 'Назовите пророка, который произнёс это ду‘а, согласно Корану: «Господи! Раскрой для меня мою грудь! Облегчи мою миссию! Развяжи узел на моём языке, чтобы они могли понять мою речь»?',
+          a: ['Юсуф (мир ему)', 'Адам (мир ему)', 'Муса (мир ему)', 'Давуд (мир ему)'],
+          c: 2,
+        },
+
+        {
+          q: 'Изваяние какого животного сделал самаритянин в качестве идола для Бану Исраил?',
+          a: ['Верблюдицы', 'Слона', 'Тельца', 'Льва'],
+          c: 2,
+        },
+
+        {
+          q: 'В чёлках каких животных останется благо (хайр) до Дня Воскрешения?',
+          a: ['Овец', 'Коз', 'Коров', 'Лошадей'],
+          c: 3,
+        },
+      ];
+
+      /* ============================================================
+   ИГРОВАЯ ЛОГИКА
+   ============================================================ */
+      const $ = (id) => document.getElementById(id);
+      const fmt = (n) => n.toLocaleString('ru-RU');
+      const esc = (s) =>
+        String(s).replace(
+          /[&<>"']/g,
+          (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]
+        );
+
+      const PRIZES = [
+        100, 200, 300, 500, 1000, 2000, 4000, 8000, 16000, 32000, 64000, 125000, 250000, 500000,
+        1000000,
+      ];
+      const TOTAL = 15;
+      const SAFE = [4, 9]; // индексы «несгораемых» вопросов (5-й и 10-й)
+      const LETTERS = ['A', 'B', 'C', 'D'];
+      const TIMER_LIMIT = 45000;
+
+      const S = {
+        pool: [],
+        idx: 0,
+        correct: 0,
+        score: 0,
+        locked: false,
+        used: { fifty: false, aud: false, swap: false },
+        sound: true,
+        timerOn: false,
+        timerId: null,
+        current: null,
+      };
+
+      function shuffle(a) {
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      /* ---------- ЗВУК (Web Audio, без файлов) ---------- */
+      let AC = null;
+      function ac() {
+        if (!AC) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (!AudioContextClass) return null;
+          AC = new AudioContextClass();
+        }
+        return AC;
+      }
+      function beep(freq, dur, type, vol) {
+        if (!S.sound) return;
+        const c = ac();
+        if (!c) return;
+        if (c.state === 'suspended') c.resume();
+        const o = c.createOscillator(),
+          g = c.createGain();
+        o.type = type || 'sine';
+        o.frequency.value = freq;
+        g.gain.setValueAtTime(0.0001, c.currentTime);
+        g.gain.linearRampToValueAtTime(vol || 0.07, c.currentTime + 0.012);
+        g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + (dur || 0.15));
+        o.connect(g);
+        g.connect(c.destination);
+        o.start();
+        o.stop(c.currentTime + (dur || 0.15) + 0.03);
+      }
+      const sfxClick = () => beep(700, 0.05, 'triangle', 0.05);
+      const sfxSelect = () => {
+        beep(520, 0.1, 'sine', 0.07);
+        setTimeout(() => beep(720, 0.12, 'sine', 0.06), 110);
+      };
+      const sfxCorrect = () =>
+        [523, 659, 784, 1047].forEach((f, i) =>
+          setTimeout(() => beep(f, 0.18, 'sine', 0.07), i * 90)
+        );
+      const sfxWrong = () => {
+        beep(220, 0.32, 'sawtooth', 0.07);
+        setTimeout(() => beep(150, 0.5, 'sawtooth', 0.06), 180);
+      };
+      const sfxWin = () =>
+        [523, 659, 784, 1047, 1319, 1568].forEach((f, i) =>
+          setTimeout(() => beep(f, 0.26, 'sine', 0.08), i * 130)
+        );
+
+      /* ---------- ЭКРАНЫ ---------- */
+      function showScreen(name) {
+        document.querySelectorAll('.screen').forEach((s) => s.classList.remove('active'));
+        $('screen-' + name).classList.add('active');
+      }
+
+      /* ---------- СТАРТ / РЕСТАРТ ---------- */
+      function startGame() {
+        S.pool = shuffle(QUESTIONS.slice()).slice(0, TOTAL);
+        S.idx = 0;
+        S.correct = 0;
+        S.score = 0;
+        S.locked = false;
+        S.used = { fifty: false, aud: false, swap: false };
+        showScreen('game');
+        renderQuestion();
+      }
+
+      /* ---------- ОТРИСОВКА ВОПРОСА ---------- */
+      function renderQuestion() {
+        const q = S.pool[S.idx];
+        S.current = q;
+        S.locked = false;
+
+        $('q-num').textContent = S.idx + 1;
+        $('q-total').textContent = TOTAL;
+        const prizeStr = fmt(PRIZES[S.idx]) + ' очков';
+        $('q-value').textContent = prizeStr;
+        $('q-prize').textContent = prizeStr;
+        $('q-text').textContent = q.q;
+
+        const card = $('qcard');
+        card.classList.remove('in');
+        void card.offsetWidth;
+        card.classList.add('in');
+
+        const box = $('answers');
+        box.innerHTML = '';
+        q.a.forEach((txt, i) => {
+          const b = document.createElement('button');
+          b.className = 'answer';
+          b.dataset.i = i;
+          b.innerHTML =
+            '<div class="answer-in">' +
+            '<span class="letter"><i>' +
+            LETTERS[i] +
+            '</i></span>' +
+            '<span class="atext">' +
+            esc(txt) +
+            '</span>' +
+            '<span class="pct"></span>' +
+            '</div>';
+          b.addEventListener('click', () => pick(i));
+          box.appendChild(b);
+        });
+
+        updateLifelines();
+        buildLadder();
+        startTimer();
+      }
+
+      /* ---------- ВЫБОР ОТВЕТА ---------- */
+      function pick(i) {
+        if (S.locked) return;
+        S.locked = true;
+        stopTimer();
+        reveal(i);
+      }
+      function timeout() {
+        if (S.locked) return;
+        S.locked = true;
+        reveal(-1);
+      }
+      function reveal(chosen) {
+        const q = S.current;
+        const btns = [...document.querySelectorAll('.answer')];
+
+        if (chosen >= 0) {
+          btns[chosen].classList.add('selected');
+          sfxSelect();
+        }
+
+        setTimeout(
+          () => {
+            if (chosen >= 0) btns[chosen].classList.remove('selected');
+            btns[q.c].classList.add('correct');
+
+            if (chosen === q.c) {
+              sfxCorrect();
+              S.correct++;
+              S.score = PRIZES[S.idx];
+              setTimeout(() => {
+                if (S.idx === TOTAL - 1) endGame(true);
+                else {
+                  S.idx++;
+                  renderQuestion();
+                }
+              }, 1000);
+            } else {
+              if (chosen >= 0) btns[chosen].classList.add('wrong');
+              sfxWrong();
+              setTimeout(() => endGame(false), 1400);
+            }
+          },
+          chosen >= 0 ? 650 : 0
+        );
+      }
+
+      /* ---------- ТАЙМЕР ---------- */
+      function startTimer() {
+        stopTimer();
+        if (!S.timerOn) return;
+        const fill = $('timer-fill');
+        $('timer-track').classList.add('on');
+        const t0 = performance.now();
+        function step(now) {
+          const left = Math.max(0, 1 - (now - t0) / TIMER_LIMIT);
+          fill.style.transform = 'scaleX(' + left + ')';
+          if (left <= 0) {
+            stopTimer();
+            timeout();
+            return;
+          }
+          S.timerId = requestAnimationFrame(step);
+        }
+        S.timerId = requestAnimationFrame(step);
+      }
+      function stopTimer() {
+        if (S.timerId) {
+          cancelAnimationFrame(S.timerId);
+          S.timerId = null;
+        }
+        $('timer-track').classList.remove('on');
+      }
+
+      /* ---------- ПОДСКАЗКИ ---------- */
+      function updateLifelines() {
+        $('ll-50').classList.toggle('used', S.used.fifty);
+        $('ll-aud').classList.toggle('used', S.used.aud);
+        $('ll-swap').classList.toggle('used', S.used.swap);
+      }
+
+      function ll50() {
+        if (S.locked || S.used.fifty) return;
+        S.used.fifty = true;
+        const q = S.current;
+        const btns = [...document.querySelectorAll('.answer')];
+        const wrong = shuffle([0, 1, 2, 3].filter((i) => i !== q.c)).slice(0, 2);
+        wrong.forEach((i) => btns[i].classList.add('faded'));
+        updateLifelines();
+        sfxClick();
+      }
+
+      function llAud() {
+        if (S.locked || S.used.aud) return;
+        S.used.aud = true;
+        const q = S.current;
+        const btns = [...document.querySelectorAll('.answer')];
+
+        const correctPct = 55 + Math.floor(Math.random() * 35); // 55–90 %
+        const rest = 100 - correctPct;
+        const wrongShuffled = shuffle([0, 1, 2, 3].filter((i) => i !== q.c));
+
+        const r1 = Math.round(rest * (0.35 + Math.random() * 0.3));
+        const r2 = Math.round((rest - r1) * (0.4 + Math.random() * 0.4));
+        const r3 = rest - r1 - r2;
+
+        const vals = {};
+        vals[q.c] = correctPct;
+        vals[wrongShuffled[0]] = r1;
+        vals[wrongShuffled[1]] = r2;
+        vals[wrongShuffled[2]] = r3;
+
+        btns.forEach((b, i) => {
+          const p = b.querySelector('.pct');
+          p.textContent = vals[i] + '%';
+          p.classList.add('show');
+        });
+        updateLifelines();
+        sfxClick();
+      }
+
+      function llSwap() {
+        if (S.locked || S.used.swap) return;
+        const usedTexts = S.pool.map((x) => x.q);
+        const unused = QUESTIONS.filter((x) => usedTexts.indexOf(x.q) === -1);
+        if (!unused.length) {
+          S.used.swap = true;
+          updateLifelines();
+          return;
+        }
+
+        S.used.swap = true;
+        S.pool[S.idx] = unused[Math.floor(Math.random() * unused.length)];
+        renderQuestion(); // перерисует, подсказки сохранят «использовано»
+        sfxClick();
+      }
+
+      function walk() {
+        if (S.locked) return;
+        S.locked = true;
+        stopTimer();
+        endGame('walk');
+      }
+
+      /* ---------- ЛЕСТНИЦА ---------- */
+      function buildLadder() {
+        const list = $('ladder-list');
+        list.innerHTML = '';
+        for (let i = TOTAL - 1; i >= 0; i--) {
+          const row = document.createElement('div');
+          row.className = 'ladder-row';
+          if (i < S.idx) row.classList.add('done');
+          if (i === S.idx && $('screen-game').classList.contains('active'))
+            row.classList.add('current');
+          if (SAFE.indexOf(i) !== -1) row.classList.add('safe');
+          row.innerHTML =
+            '<span class="ln">' + (i + 1) + '</span><span class="lv">' + fmt(PRIZES[i]) + '</span>';
+          list.appendChild(row);
+        }
+      }
+
+      /* ---------- КОНЕЦ ИГРЫ ---------- */
+      function endGame(reason) {
+        stopTimer();
+
+        const won = reason === true;
+        const walked = reason === 'walk';
+
+        let prize = 0;
+        if (won) {
+          prize = PRIZES[TOTAL - 1];
+          sfxWin();
+        } else if (walked) {
+          prize = S.idx > 0 ? PRIZES[S.idx - 1] : 0;
+        } else {
+          // проигрыш — падаем на последний «несгораемый» рубеж
+          if (S.idx >= 10) prize = PRIZES[9];
+          else if (S.idx >= 5) prize = PRIZES[4];
+          else prize = 0;
+        }
+
+        showScreen('end');
+        $('end-emoji').textContent = won ? '🏆' : walked ? '🤝' : '💔';
+        $('end-title').textContent = won ? 'Победа!' : walked ? 'Вы забрали' : 'Игра окончена';
+        $('end-title').classList.toggle('lose', !won && !walked);
+        $('end-prize').innerHTML = fmt(prize) + ' <small>очков</small>';
+        $('end-sub').textContent = 'Правильных ответов: ' + S.correct + ' из ' + TOTAL;
+      }
+
+      /* ---------- НАСТРОЙКИ (звук / таймер) ---------- */
+      function setSound(on) {
+        S.sound = on;
+        $('opt-sound').classList.toggle('on', on);
+        $('btn-sound2').textContent = on ? '🔊' : '🔇';
+        $('btn-sound2').classList.toggle('off', !on);
+        if (on) sfxClick();
+      }
+      function setTimer(on) {
+        S.timerOn = on;
+        $('opt-timer').classList.toggle('on', on);
+        if (on) sfxClick();
+      }
+
+      /* ---------- МОДАЛКА ---------- */
+      function openLadder() {
+        buildLadder();
+        $('modal-ladder').classList.add('open');
+      }
+      function closeLadder() {
+        $('modal-ladder').classList.remove('open');
+      }
+
+      /* ---------- ПРИВЯЗКА СОБЫТИЙ ---------- */
+      $('btn-play').addEventListener('click', startGame);
+      $('btn-again').addEventListener('click', startGame);
+      $('btn-menu').addEventListener('click', () => showScreen('start'));
+
+      $('btn-ladder').addEventListener('click', openLadder);
+      $('close-ladder').addEventListener('click', closeLadder);
+      $('btn-exit').addEventListener('click', () => {
+        closeLadder();
+        showScreen('start');
+      });
+      $('modal-ladder').addEventListener('click', (e) => {
+        if (e.target.id === 'modal-ladder') closeLadder();
+      });
+
+      $('ll-50').addEventListener('click', ll50);
+      $('ll-aud').addEventListener('click', llAud);
+      $('ll-swap').addEventListener('click', llSwap);
+      $('ll-walk').addEventListener('click', walk);
+
+      $('opt-sound').addEventListener('click', () => setSound(!S.sound));
+      $('opt-timer').addEventListener('click', () => setTimer(!S.timerOn));
+      $('btn-sound2').addEventListener('click', () => setSound(!S.sound));
+
+      /* ---------- ИНИЦИАЛИЗАЦИЯ ---------- */
+      $('bank-info').textContent = 'В базе ' + QUESTIONS.length + ' вопросов · 15 за игру';
+      setSound(true);
+      buildLadder();
+    </script>
+  </body>
+</html>
